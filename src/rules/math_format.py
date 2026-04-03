@@ -160,3 +160,48 @@ class UnitFormatRule(BaseRule):
                             suggestion="使用 \\text{~m/s} 格式",
                         ))
         return issues
+
+
+class UpperGreekItalicRule(BaseRule):
+    rule_id = "MATH-006"
+    description = "检查大写希腊字母是否使用斜体（\\var- 形式）"
+
+    # 需要检查的大写希腊字母及其斜体替换
+    _LETTERS = {
+        "Gamma": "varGamma", "Delta": "varDelta", "Theta": "varTheta",
+        "Lambda": "varLambda", "Xi": "varXi", "Pi": "varPi",
+        "Sigma": "varSigma", "Upsilon": "varUpsilon", "Phi": "varPhi",
+        "Psi": "varPsi", "Omega": "varOmega",
+    }
+    # 匹配正体大写希腊字母，排除已经是 \var- 形式的
+    _PATTERN = re.compile(
+        r"(?<!var)\\(" + "|".join(_LETTERS.keys()) + r")(?![a-zA-Z])"
+    )
+
+    def check(self, content: str, lines: list[str]) -> list[Issue]:
+        issues: list[Issue] = []
+        in_math = False
+        for i, line in enumerate(lines):
+            stripped = line.lstrip()
+            if stripped.startswith("%"):
+                continue
+
+            if re.search(r"\\begin\{equation\}", line):
+                in_math = True
+            if re.search(r"\\end\{equation\}", line):
+                in_math = False
+                continue
+
+            if not in_math and not re.search(r"\$", line) and not re.search(r"\\\(", line):
+                continue
+
+            for m in self._PATTERN.finditer(line):
+                name = m.group(1)
+                replacement = self._LETTERS[name]
+                issues.append(Issue(
+                    self.rule_id, Severity.INFO,
+                    f"大写希腊字母 \\{name} 默认为正体，物理公式中通常应使用斜体 \\{replacement}",
+                    line=i + 1,
+                    suggestion=f"将 \\{name} 替换为 \\{replacement}",
+                ))
+        return issues

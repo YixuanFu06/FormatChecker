@@ -88,6 +88,7 @@ python main.py --min-severity error your-problem.tex
 | MATH-003 | 检查介电常量是否使用 `\varepsilon` 而非 `\epsilon` |
 | MATH-004 | 检查矢量是否使用 `\vec{}` 而非加粗 |
 | MATH-005 | 检查数值与单位之间的格式（`\text{~ 单位}`） |
+| MATH-006 | 检查大写希腊字母是否使用斜体（`\var-` 形式） |
 
 ### 图片规范（FIG）
 

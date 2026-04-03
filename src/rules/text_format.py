@@ -39,8 +39,11 @@ class ChinesePunctuationRule(BaseRule):
             stripped = line.lstrip()
             if stripped.startswith("%") or stripped.startswith("\\"):
                 continue
+            # 移除 \(...\) 行内数学公式和 $...$ 后再检查括号
+            cleaned = re.sub(r"\\\(.*?\\\)", "", line)
+            cleaned = re.sub(r"\$[^$]+\$", "", cleaned)
             # 检查中文语境中的英文括号（中文字符紧邻英文括号）
-            if re.search(r"[\u4e00-\u9fff]\([^)]*\)|\([^)]*\)[\u4e00-\u9fff]", line):
+            if re.search(r"[\u4e00-\u9fff]\([^)]*\)|\([^)]*\)[\u4e00-\u9fff]", cleaned):
                 issues.append(Issue(
                     self.rule_id, Severity.INFO,
                     "中文环境中建议使用中文括号（）而非英文括号()",
