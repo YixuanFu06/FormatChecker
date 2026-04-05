@@ -280,3 +280,26 @@ class UpperGreekItalicRule(BaseRule):
                     suggestion=f"将 \\{name} 替换为 \\{replacement} (若确实需要正体，如表述变化量的 \\Delta、特殊函数等情况可忽略该建议)",
                 ))
         return issues
+
+
+class HslashFormatRule(BaseRule):
+    rule_id = "MATH-008"
+    description = "检查约化普朗克常量是否使用 \\hslash 而非 \\hbar"
+
+    def check(self, content: str, lines: list[str]) -> list[Issue]:
+        issues: list[Issue] = []
+        for i, line in enumerate(lines):
+            stripped = line.lstrip()
+            if stripped.startswith("%"):
+                continue
+            
+            # 查找 \hbar 
+            matches = re.finditer(r"\\hbar(?![a-zA-Z])", line)
+            for _ in matches:
+                issues.append(Issue(
+                    self.rule_id, Severity.WARNING,
+                    "约化普朗克常量应使用 \\hslash 而非 \\hbar，以获得更好的排版效果",
+                    line=i + 1,
+                    suggestion="替换为 \\hslash",
+                ))
+        return issues
